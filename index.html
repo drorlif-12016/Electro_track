@@ -1,8 +1,738 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<title> Intellipaat </title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Electronics Stock Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Custom styles for transitions and animations */
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .product-card, .stock-item, .hub-item {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .product-card:hover, .stock-item:hover, .hub-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .detail-view {
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
 </head>
-<body style = "background-image:url('images/github3.jpg'); background-size: 100%">
-<h2 ALIGN=CENTER>Hello world!</h2>
+<body class="bg-gray-100 font-sans">
+    <div class="max-w-md mx-auto bg-white min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="bg-blue-600 text-white p-4 shadow-md">
+            <div class="flex items-center justify-between">
+                <h1 class="text-xl font-bold">Electronic Stock Tracker</h1>
+                <div id="search-button" class="p-2 rounded-full hover:bg-blue-700 transition cursor-pointer">
+                    <i class="fas fa-search"></i>
+                </div>
+            </div>
+            <!-- Search Bar (Hidden by default) -->
+            <div id="search-bar" class="mt-3 hidden">
+                <input type="text" placeholder="Search..." class="w-full p-2 rounded text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-auto pb-16" id="main-content">
+            <!-- Catalog Tab -->
+            <div id="catalog" class="tab-content active p-4">
+                <h2 class="text-lg font-semibold mb-4 text-gray-700 border-b pb-2">Product Catalog</h2>
+                <div class="grid grid-cols-1 gap-4" id="catalog-list">
+                    <!-- Product cards will be dynamically inserted here -->
+                </div>
+            </div>
+
+            <!-- Stock Tab -->
+            <div id="stock" class="tab-content p-4">
+                <h2 class="text-lg font-semibold mb-4 text-gray-700 border-b pb-2">Current Stock</h2>
+                <div class="space-y-3" id="stock-list">
+                    <!-- Stock items will be dynamically inserted here -->
+                </div>
+            </div>
+
+            <!-- Control Hub Tab -->
+            <div id="control-hub" class="tab-content p-4">
+                <h2 class="text-lg font-semibold mb-4 text-gray-700 border-b pb-2">Control Hub Ports</h2>
+                <div class="space-y-3" id="control-hub-list">
+                    <!-- Control hub ports will be dynamically inserted here -->
+                </div>
+                <button id="add-control-port" class="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow transition">Add Port</button>
+            </div>
+
+            <!-- Expansion Hub Tab -->
+            <div id="expansion-hub" class="tab-content p-4">
+                <h2 class="text-lg font-semibold mb-4 text-gray-700 border-b pb-2">Expansion Hub Ports</h2>
+                <div class="space-y-3" id="expansion-hub-list">
+                    <!-- Expansion hub ports will be dynamically inserted here -->
+                </div>
+                <button id="add-expansion-port" class="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow transition">Add Port</button>
+            </div>
+
+            <!-- Servo Hub Tab -->
+            <div id="servo-hub" class="tab-content p-4">
+                <h2 class="text-lg font-semibold mb-4 text-gray-700 border-b pb-2">Servo Hub Ports</h2>
+                <div class="space-y-3" id="servo-hub-list">
+                    <!-- Servo hub ports will be dynamically inserted here -->
+                </div>
+                <button id="add-servo-port" class="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow transition">Add Port</button>
+            </div>
+
+            <!-- Product Detail View -->
+            <div id="product-detail" class="hidden p-4 detail-view">
+                <div class="flex items-center mb-4">
+                    <button id="back-button" class="mr-2 text-blue-500">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h2 class="text-xl font-semibold">Product Details</h2>
+                </div>
+                <div id="detail-content">
+                    <!-- Detail content will be dynamically inserted here -->
+                </div>
+                <div id="comparison-section" class="mt-6 hidden">
+                    <h3 class="font-semibold mb-2">Comparison</h3>
+                    <div class="flex space-x-2">
+                        <button id="compare-add-btn" class="bg-blue-500 text-white px-3 py-1 rounded text-sm">Add to Compare</button>
+                        <button id="compare-view-btn" class="bg-green-500 text-white px-3 py-1 rounded text-sm">View Compared</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparison View -->
+            <div id="comparison-view" class="hidden p-4">
+                <div class="flex items-center mb-4">
+                    <button id="back-from-comparison" class="mr-2 text-blue-500">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h2 class="text-xl font-semibold">Product Comparison</h2>
+                </div>
+                <div id="comparison-content">
+                    <!-- Comparison content will be dynamically inserted here -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="fixed bottom-0 w-full max-w-md bg-white shadow-md flex justify-around">
+            <button class="tab-button active p-3 text-blue-500 flex flex-col items-center" data-tab="catalog">
+                <i class="fas fa-boxes"></i>
+                <span class="text-xs mt-1">Catalog</span>
+            </button>
+            <button class="tab-button p-3 text-gray-600 flex flex-col items-center" data-tab="stock">
+                <i class="fas fa-clipboard-list"></i>
+                <span class="text-xs mt-1">Stock</span>
+            </button>
+            <button class="tab-button p-3 text-gray-600 flex flex-col items-center" data-tab="control-hub">
+                <i class="fas fa-microchip"></i>
+                <span class="text-xs mt-1">Control Hub</span>
+            </button>
+            <button class="tab-button p-3 text-gray-600 flex flex-col items-center" data-tab="expansion-hub">
+                <i class="fas fa-expand"></i>
+                <span class="text-xs mt-1">Expansion Hub</span>
+            </button>
+            <button class="tab-button p-3 text-gray-600 flex flex-col items-center" data-tab="servo-hub">
+                <i class="fas fa-cogs"></i>
+                <span class="text-xs mt-1">Servo Hub</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Add Port Modal -->
+    <div id="port-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg p-4 w-11/12 max-w-md">
+            <h3 class="font-semibold text-lg mb-4" id="modal-title">Add New Port</h3>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Port Number</label>
+                    <input type="number" id="port-number" class="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Device Connected</label>
+                    <input type="text" id="port-device" class="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select id="port-status" class="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500">
+                        <option>Active</option>
+                        <option>Inactive</option>
+                        <option>Faulty</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end space-x-2 mt-4">
+                <button id="cancel-port" class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100">Cancel</button>
+                <button id="save-port" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" data-hub-type="">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data for the app
+        const products = [
+            {
+                id: 1,
+                name: "Arduino Uno",
+                description: "The Arduino Uno is an open-source microcontroller board based on the Microchip ATmega328P microcontroller.",
+                category: "Microcontrollers",
+                currentStock: 12,
+                minStock: 5,
+                price: 22.99,
+                specs: {
+                    "Processor": "ATmega328P",
+                    "Operating Voltage": "5V",
+                    "Digital I/O Pins": "14",
+                    "Analog Input Pins": "6",
+                    "Flash Memory": "32 KB",
+                    "Clock Speed": "16 MHz"
+                }
+            },
+            {
+                id: 2,
+                name: "Raspberry Pi 4",
+                description: "Latest Raspberry Pi 4 Model B with 1GB, 2GB, 4GB or 8GB of LPDDR4 SDRAM.",
+                category: "Single-board Computers",
+                currentStock: 8,
+                minStock: 3,
+                price: 45.00,
+                specs: {
+                    "Processor": "Broadcom BCM2711",
+                    "CPU": "Quad-core Cortex-A72 (ARM v8) 64-bit SoC @ 1.5GHz",
+                    "RAM": "Variants from 2GB to 8GB LPDDR4-3200",
+                    "Connectivity": "Dual-band 2.4GHz and 5GHz wireless LAN",
+                    "Ports": "2 × USB 3.0, 2 × USB 2.0, 2 × micro-HDMI"
+                }
+            },
+            {
+                id: 3,
+                name: "SG90 Servo Motor",
+                description: "Tower Pro SG90 9g Mini Micro Servo for RC Helicopter Airplane Car Boat.",
+                category: "Motors",
+                currentStock: 25,
+                minStock: 10,
+                price: 3.99,
+                specs: {
+                    "Weight": "9g",
+                    "Dimension": "22.2×11.8×31mm",
+                    "Stall Torque": "1.5kg/cm",
+                    "Operating Speed": "0.1s/60 degrees",
+                    "Operating Voltage": "4.8V"
+                }
+            },
+            {
+                id: 4,
+                name: "REV Control Hub",
+                description: "The REV Control Hub combines the Robot Controller, Power Distribution Module, and Expansion Hub into a single module.",
+                category: "Control Systems",
+                currentStock: 4,
+                minStock: 2,
+                price: 199.99,
+                specs: {
+                    "Processor": "Qualcomm Snapdragon 410",
+                    "Operating System": "Android 5.1",
+                    "Ports": "4 × USB, 4 × Motor Ports, 4 × Servo Ports",
+                    "Connectivity": "Wi-Fi, Bluetooth",
+                    "Input Voltage": "12V DC"
+                }
+            },
+            {
+                id: 5,
+                name: "HC-SR04 Ultrasonic Sensor",
+                description: "HC-SR04 Ultrasonic Range Finder Distance Sensor for Arduino.",
+                category: "Sensors",
+                currentStock: 18,
+                minStock: 6,
+                price: 2.99,
+                specs: {
+                    "Working Voltage": "5V DC",
+                    "Working Current": "15mA",
+                    "Measuring Angle": "15 degrees",
+                    "Ranging Distance": "2cm – 400cm",
+                    "Resolution": "0.3cm"
+                }
+            },
+            {
+                id: 6,
+                name: "L298N Motor Driver",
+                description: "L298N Dual H-Bridge Motor Controller module for driving DC and stepper motors.",
+                category: "Motor Controllers",
+                currentStock: 10,
+                minStock: 3,
+                price: 5.99,
+                specs: {
+                    "Driver": "L298N",
+                    "Operating Voltage": "5V – 35V",
+                    "Peak Current": "2A per channel",
+                    "Max Power": "25W",
+                    "Control Signal": "TTL Compatible"
+                }
+            }
+        ];
+
+        let currentControlHubPorts = [
+            { portNumber: 1, device: "Motor A", status: "Active" },
+            { portNumber: 2, device: "Motor B", status: "Active" },
+            { portNumber: 3, device: "Servo X", status: "Inactive" }
+        ];
+
+        let currentExpansionHubPorts = [
+            { portNumber: 1, device: "Color Sensor", status: "Active" },
+            { portNumber: 2, device: "Touch Sensor", status: "Active" }
+        ];
+
+        let currentServoHubPorts = [
+            { portNumber: 1, device: "Servo 1", status: "Active" },
+            { portNumber: 2, device: "Servo 2", status: "Inactive" },
+            { portNumber: 3, device: "Servo 3", status: "Active" }
+        ];
+
+        let selectedProduct = null;
+        let productsToCompare = [];
+
+        // DOM elements
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const searchButton = document.getElementById('search-button');
+        const searchBar = document.getElementById('search-bar');
+        const mainContent = document.getElementById('main-content');
+        const catalogList = document.getElementById('catalog-list');
+        const stockList = document.getElementById('stock-list');
+        const controlHubList = document.getElementById('control-hub-list');
+        const expansionHubList = document.getElementById('expansion-hub-list');
+        const servoHubList = document.getElementById('servo-hub-list');
+        const productDetail = document.getElementById('product-detail');
+        const detailContent = document.getElementById('detail-content');
+        const comparisonSection = document.getElementById('comparison-section');
+        const compareAddBtn = document.getElementById('compare-add-btn');
+        const compareViewBtn = document.getElementById('compare-view-btn');
+        const backButton = document.getElementById('back-button');
+        const comparisonView = document.getElementById('comparison-view');
+        const comparisonContent = document.getElementById('comparison-content');
+        const backFromComparison = document.getElementById('back-from-comparison');
+        const portModal = document.getElementById('port-modal');
+        const savePortBtn = document.getElementById('save-port');
+        const cancelPortBtn = document.getElementById('cancel-port');
+        const addControlPortBtn = document.getElementById('add-control-port');
+        const addExpansionPortBtn = document.getElementById('add-expansion-port');
+        const addServoPortBtn = document.getElementById('add-servo-port');
+
+        // Tab switching functionality
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons and contents
+                tabButtons.forEach(btn => btn.classList.remove('active', 'text-blue-500'));
+                tabButtons.forEach(btn => btn.classList.add('text-gray-600'));
+                tabContents.forEach(content => content.classList.remove('active'));
+
+                // Add active class to clicked button and show corresponding content
+                button.classList.add('active', 'text-blue-500');
+                button.classList.remove('text-gray-600');
+                const tabId = button.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+
+                // Hide any detail views if they're open
+                productDetail.classList.add('hidden');
+                comparisonView.classList.add('hidden');
+            });
+        });
+
+        // Search functionality
+        searchButton.addEventListener('click', () => {
+            searchBar.classList.toggle('hidden');
+        });
+
+        // Initialize the app
+        function initApp() {
+            renderProductCatalog();
+            renderStockList();
+            renderControlHub();
+            renderExpansionHub();
+            renderServoHub();
+        }
+
+        // Render product catalog
+        function renderProductCatalog() {
+            catalogList.innerHTML = '';
+            products.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card bg-white rounded-lg shadow p-4 cursor-pointer';
+                productCard.innerHTML = `
+                    <h3 class="font-semibold text-blue-600">${product.name}</h3>
+                    <p class="text-sm text-gray-600 mt-1">${product.category}</p>
+                    <p class="text-sm mt-2 line-clamp-2">${product.description}</p>
+                    <div class="flex justify-between items-center mt-3">
+                        <span class="text-green-600 font-medium">$${product.price.toFixed(2)}</span>
+                        <span class="text-xs px-2 py-1 rounded-full ${product.currentStock > product.minStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                            Stock: ${product.currentStock}
+                        </span>
+                    </div>
+                `;
+                productCard.addEventListener('click', () => showProductDetail(product));
+                catalogList.appendChild(productCard);
+            });
+        }
+
+        // Show product detail view
+        function showProductDetail(product) {
+            selectedProduct = product;
+            document.querySelector('.tab-content.active').classList.remove('active');
+            productDetail.classList.remove('hidden');
+            
+            // Check if this product is already in comparison
+            const isInComparison = productsToCompare.some(p => p.id === product.id);
+            
+            detailContent.innerHTML = `
+                <div class="bg-white rounded-lg shadow p-4">
+                    <h3 class="text-xl font-bold text-blue-600">${product.name}</h3>
+                    <p class="text-sm text-gray-500 mt-1">${product.category}</p>
+                    <p class="mt-3 text-gray-700">${product.description}</p>
+                    
+                    <div class="mt-4">
+                        <h4 class="font-semibold border-b pb-1">Specifications</h4>
+                        <div class="mt-2 space-y-2">
+                            ${Object.entries(product.specs).map(([key, value]) => `
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">${key}:</span>
+                                    <span class="font-medium">${value}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 grid grid-cols-2 gap-2">
+                        <div class="bg-blue-50 p-3 rounded">
+                            <p class="text-xs text-gray-500">Current Stock</p>
+                            <p class="font-bold ${product.currentStock > product.minStock ? 'text-green-600' : 'text-red-600'}">${product.currentStock}</p>
+                        </div>
+                        <div class="bg-blue-50 p-3 rounded">
+                            <p class="text-xs text-gray-500">Minimum Stock</p>
+                            <p class="font-bold">${product.minStock}</p>
+                        </div>
+                        <div class="bg-blue-50 p-3 rounded">
+                            <p class="text-xs text-gray-500">Price</p>
+                            <p class="font-bold">$${product.price.toFixed(2)}</p>
+                        </div>
+                        <div class="bg-blue-50 p-3 rounded">
+                            <p class="text-xs text-gray-500">Status</p>
+                            <p class="font-bold ${product.currentStock > product.minStock ? 'text-green-600' : 'text-red-600'}">
+                                ${product.currentStock > product.minStock ? 'In Stock' : 'Low Stock'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Show comparison section if we're on the catalog tab
+            comparisonSection.classList.remove('hidden');
+            
+            // Update comparison button text
+            compareAddBtn.textContent = isInComparison ? 'Remove from Compare' : 'Add to Compare';
+            compareAddBtn.className = isInComparison ? 
+                'bg-red-500 text-white px-3 py-1 rounded text-sm' : 
+                'bg-blue-500 text-white px-3 py-1 rounded text-sm';
+        }
+
+        // Render stock list
+        function renderStockList() {
+            stockList.innerHTML = '';
+            products.forEach(product => {
+                const stockLevel = (product.currentStock / product.minStock) * 100;
+                const progressColor = stockLevel > 100 ? 'bg-green-500' : 
+                                     stockLevel > 50 ? 'bg-yellow-500' : 'bg-red-500';
+                
+                const stockItem = document.createElement('div');
+                stockItem.className = 'stock-item bg-white rounded-lg shadow p-3';
+                stockItem.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="font-medium">${product.name}</h3>
+                            <p class="text-xs text-gray-500">${product.category}</p>
+                        </div>
+                        <span class="font-bold ${product.currentStock > product.minStock ? 'text-green-600' : 'text-red-600'}">
+                            ${product.currentStock} / ${product.minStock}
+                        </span>
+                    </div>
+                    <div class="mt-2">
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="h-2 rounded-full ${progressColor}" style="width: ${Math.min(stockLevel, 100)}%"></div>
+                        </div>
+                    </div>
+                `;
+                stockList.appendChild(stockItem);
+            });
+        }
+
+        // Render control hub
+        function renderControlHub() {
+            controlHubList.innerHTML = '';
+            currentControlHubPorts.forEach(port => {
+                const portStatusClass = port.status === 'Active' ? 'bg-green-100 text-green-800' : 
+                                       port.status === 'Faulty' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800';
+                
+                const portItem = document.createElement('div');
+                portItem.className = 'hub-item bg-white rounded-lg shadow p-3';
+                portItem.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-2">
+                                <i class="fas fa-plug text-blue-500 text-xs"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-medium">Port ${port.portNumber}</h3>
+                                <p class="text-xs text-gray-500">${port.device}</p>
+                            </div>
+                        </div>
+                        <span class="text-xs px-2 py-1 rounded-full ${portStatusClass}">${port.status}</span>
+                    </div>
+                `;
+                controlHubList.appendChild(portItem);
+            });
+        }
+
+        // Render expansion hub
+        function renderExpansionHub() {
+            expansionHubList.innerHTML = '';
+            currentExpansionHubPorts.forEach(port => {
+                const portStatusClass = port.status === 'Active' ? 'bg-green-100 text-green-800' : 
+                                       port.status === 'Faulty' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800';
+                
+                const portItem = document.createElement('div');
+                portItem.className = 'hub-item bg-white rounded-lg shadow p-3';
+                portItem.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center mr-2">
+                                <i class="fas fa-expand text-purple-500 text-xs"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-medium">Port ${port.portNumber}</h3>
+                                <p class="text-xs text-gray-500">${port.device}</p>
+                            </div>
+                        </div>
+                        <span class="text-xs px-2 py-1 rounded-full ${portStatusClass}">${port.status}</span>
+                    </div>
+                `;
+                expansionHubList.appendChild(portItem);
+            });
+        }
+
+        // Render servo hub
+        function renderServoHub() {
+            servoHubList.innerHTML = '';
+            currentServoHubPorts.forEach(port => {
+                const portStatusClass = port.status === 'Active' ? 'bg-green-100 text-green-800' : 
+                                       port.status === 'Faulty' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800';
+                
+                const portItem = document.createElement('div');
+                portItem.className = 'hub-item bg-white rounded-lg shadow p-3';
+                portItem.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center mr-2">
+                                <i class="fas fa-cog text-indigo-500 text-xs"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-medium">Port ${port.portNumber}</h3>
+                                <p class="text-xs text-gray-500">${port.device}</p>
+                            </div>
+                        </div>
+                        <span class="text-xs px-2 py-1 rounded-full ${portStatusClass}">${port.status}</span>
+                    </div>
+                `;
+                servoHubList.appendChild(portItem);
+            });
+        }
+
+        // Back button functionality
+        backButton.addEventListener('click', () => {
+            productDetail.classList.add('hidden');
+            document.querySelector('.tab-button.active').click();
+        });
+
+        backFromComparison.addEventListener('click', () => {
+            comparisonView.classList.add('hidden');
+            productDetail.classList.remove('hidden');
+        });
+
+        // Comparison functionality
+        compareAddBtn.addEventListener('click', () => {
+            if (!selectedProduct) return;
+            
+            const existingIndex = productsToCompare.findIndex(p => p.id === selectedProduct.id);
+            
+            if (existingIndex >= 0) {
+                // Remove from comparison
+                productsToCompare.splice(existingIndex, 1);
+                compareAddBtn.textContent = 'Add to Compare';
+                compareAddBtn.className = 'bg-blue-500 text-white px-3 py-1 rounded text-sm';
+            } else {
+                // Add to comparison
+                if (productsToCompare.length < 3) { // Limit to 3 products for comparison
+                    productsToCompare.push(selectedProduct);
+                    compareAddBtn.textContent = 'Remove from Compare';
+                    compareAddBtn.className = 'bg-red-500 text-white px-3 py-1 rounded text-sm';
+                } else {
+                    alert('You can compare up to 3 products at a time.');
+                }
+            }
+            
+            // Update view comparison button
+            compareViewBtn.style.display = productsToCompare.length > 1 ? 'block' : 'none';
+        });
+
+        compareViewBtn.addEventListener('click', () => {
+            showComparisonView();
+        });
+
+        function showComparisonView() {
+            productDetail.classList.add('hidden');
+            comparisonView.classList.remove('hidden');
+            
+            if (productsToCompare.length < 2) {
+                comparisonContent.innerHTML = `
+                    <div class="bg-white rounded-lg shadow p-4 text-center">
+                        <p class="text-gray-600">You need at least 2 products to compare</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Get all unique specification keys from all products
+            const allSpecsKeys = [];
+            productsToCompare.forEach(product => {
+                Object.keys(product.specs).forEach(key => {
+                    if (!allSpecsKeys.includes(key)) {
+                        allSpecsKeys.push(key);
+                    }
+                });
+            });
+            
+            let comparisonHTML = `
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="bg-gray-50">
+                                <th class="px-4 py-2 text-left text-gray-600">Specification</th>
+                                ${productsToCompare.map(product => `
+                                    <th class="px-4 py-2 text-left text-gray-600">${product.name}</th>
+                                `).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${allSpecsKeys.map(specKey => `
+                                <tr class="border-t">
+                                    <td class="px-4 py-2 font-medium text-gray-700">${specKey}</td>
+                                    ${productsToCompare.map(product => `
+                                        <td class="px-4 py-2">${product.specs[specKey] || 'N/A'}</td>
+                                    `).join('')}
+                                </tr>
+                            `).join('')}
+                            <tr class="border-t">
+                                <td class="px-4 py-2 font-medium text-gray-700">Price</td>
+                                ${productsToCompare.map(product => `
+                                    <td class="px-4 py-2">$${product.price.toFixed(2)}</td>
+                                `).join('')}
+                            </tr>
+                            <tr class="border-t">
+                                <td class="px-4 py-2 font-medium text-gray-700">Stock</td>
+                                ${productsToCompare.map(product => `
+                                    <td class="px-4 py-2">
+                                        <span class="${product.currentStock > product.minStock ? 'text-green-600' : 'text-red-600'}">
+                                            ${product.currentStock} / ${product.minStock}
+                                        </span>
+                                    </td>
+                                `).join('')}
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-4 text-right">
+                    <button id="clear-comparison" class="text-red-500 text-sm hover:text-red-700">
+                        <i class="fas fa-trash-alt mr-1"></i> Clear Comparison
+                    </button>
+                </div>
+            `;
+            
+            comparisonContent.innerHTML = comparisonHTML;
+            
+            // Add event listener to clear comparison button
+            document.getElementById('clear-comparison')?.addEventListener('click', () => {
+                productsToCompare = [];
+                comparisonView.classList.add('hidden');
+                document.querySelector('.tab-button.active').click();
+            });
+        }
+
+        // Port management functionality
+        [addControlPortBtn, addExpansionPortBtn, addServoPortBtn].forEach(btn => {
+            btn.addEventListener('click', () => {
+                const hubType = btn.id.replace('add-', '').replace('-port', '');
+                savePortBtn.setAttribute('data-hub-type', hubType);
+                document.getElementById('modal-title').textContent = `Add ${hubType.replace('-', ' ')} Port`;
+                
+                // Reset form
+                document.getElementById('port-number').value = '';
+                document.getElementById('port-device').value = '';
+                document.getElementById('port-status').value = 'Active';
+                
+                portModal.classList.remove('hidden');
+            });
+        });
+
+        savePortBtn.addEventListener('click', () => {
+            const portNumber = parseInt(document.getElementById('port-number').value);
+            const device = document.getElementById('port-device').value.trim();
+            const status = document.getElementById('port-status').value;
+            const hubType = savePortBtn.getAttribute('data-hub-type');
+            
+            if (!portNumber || isNaN(portNumber) || !device) {
+                alert('Please fill in all fields with valid values');
+                return;
+            }
+            
+            const newPort = { portNumber, device, status };
+            
+            switch (hubType) {
+                case 'control-hub':
+                    currentControlHubPorts.push(newPort);
+                    renderControlHub();
+                    break;
+                case 'expansion-hub':
+                    currentExpansionHubPorts.push(newPort);
+                    renderExpansionHub();
+                    break;
+                case 'servo-hub':
+                    currentServoHubPorts.push(newPort);
+                    renderServoHub();
+                    break;
+            }
+            
+            portModal.classList.add('hidden');
+        });
+
+        cancelPortBtn.addEventListener('click', () => {
+            portModal.classList.add('hidden');
+        });
+
+        // Initialize the app when the DOM is loaded
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
 </body>
 </html>
