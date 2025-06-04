@@ -55,7 +55,12 @@
         <main class="flex-1 overflow-auto pb-16" id="main-content">
             <!-- Catalog Tab -->
             <div id="catalog" class="tab-content active p-4">
-                <h2 class="text-lg font-semibold mb-4 text-gray-700 border-b pb-2">Product Catalog</h2>
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold text-gray-700 border-b pb-2">Product Catalog</h2>
+                    <button id="add-product-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
+                        <i class="fas fa-plus mr-1"></i>Add Product
+                    </button>
+                </div>
                 <div class="grid grid-cols-1 gap-4" id="catalog-list">
                     <!-- Product cards will be dynamically inserted here -->
                 </div>
@@ -116,6 +121,23 @@
                 </div>
             </div>
 
+            <!-- Hub Port Detail View -->
+            <div id="hub-port-detail" class="hidden p-4 detail-view">
+                <div class="flex items-center mb-4">
+                    <button id="back-from-hub-detail" class="mr-2 text-blue-500">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h2 class="text-xl font-semibold">Port Details</h2>
+                </div>
+                <div id="port-detail-content" class="bg-white rounded-lg shadow p-4">
+                    <!-- Port detail content will be dynamically inserted here -->
+                </div>
+                <div class="flex space-x-2 mt-4">
+                    <button id="edit-port-btn" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow transition">Edit Port</button>
+                    <button id="delete-port-btn" class="flex-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg shadow transition">Delete Port</button>
+                </div>
+            </div>
+
             <!-- Comparison View -->
             <div id="comparison-view" class="hidden p-4">
                 <div class="flex items-center mb-4">
@@ -169,6 +191,14 @@
                     <input type="text" id="port-device" class="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500">
                 </div>
                 <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">System/Name</label>
+                    <input type="text" id="port-system" class="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., Robot Arm, Drivetrain">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Port Type</label>
+                    <input type="text" id="port-type" class="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., Motor, Sensor, Servo">
+                </div>
+                <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
                     <select id="port-status" class="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500">
                         <option>Active</option>
@@ -189,11 +219,11 @@
         const products = [
             {
                 id: 1,
-                name: "Arduino Uno",
-                description: "The Arduino Uno is an open-source microcontroller board based on the Microchip ATmega328P microcontroller.",
-                category: "Microcontrollers",
-                currentStock: 12,
-                minStock: 5,
+                name: "Control Hub",
+                description: "",
+                category: "control system",
+                currentStock: 2,
+                minStock: 1,
                 price: 22.99,
                 specs: {
                     "Processor": "ATmega328P",
@@ -287,20 +317,15 @@
         ];
 
         let currentControlHubPorts = [
-            { portNumber: 1, device: "Motor A", status: "Active" },
-            { portNumber: 2, device: "Motor B", status: "Active" },
-            { portNumber: 3, device: "Servo X", status: "Inactive" }
+   
         ];
 
         let currentExpansionHubPorts = [
-            { portNumber: 1, device: "Color Sensor", status: "Active" },
-            { portNumber: 2, device: "Touch Sensor", status: "Active" }
+    
         ];
 
         let currentServoHubPorts = [
-            { portNumber: 1, device: "Servo 1", status: "Active" },
-            { portNumber: 2, device: "Servo 2", status: "Inactive" },
-            { portNumber: 3, device: "Servo 3", status: "Active" }
+
         ];
 
         let selectedProduct = null;
@@ -326,6 +351,7 @@
         const comparisonView = document.getElementById('comparison-view');
         const comparisonContent = document.getElementById('comparison-content');
         const backFromComparison = document.getElementById('back-from-comparison');
+        const hubPortDetail = document.getElementById('hub-port-detail');
         const portModal = document.getElementById('port-modal');
         const savePortBtn = document.getElementById('save-port');
         const cancelPortBtn = document.getElementById('cancel-port');
@@ -374,19 +400,70 @@
                 const productCard = document.createElement('div');
                 productCard.className = 'product-card bg-white rounded-lg shadow p-4 cursor-pointer';
                 productCard.innerHTML = `
-                    <h3 class="font-semibold text-blue-600">${product.name}</h3>
-                    <p class="text-sm text-gray-600 mt-1">${product.category}</p>
-                    <p class="text-sm mt-2 line-clamp-2">${product.description}</p>
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="font-semibold text-blue-600">${product.name}</h3>
+                            <p class="text-sm text-gray-600 mt-1">${product.category}</p>
+                            <p class="text-sm mt-2 line-clamp-2">${product.description}</p>
+                        </div>
+                        <button class="edit-product-btn p-1 text-gray-400 hover:text-blue-500" 
+                                data-id="${product.id}">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                    </div>
                     <div class="flex justify-between items-center mt-3">
-                        <span class="text-green-600 font-medium">$${product.price.toFixed(2)}</span>
-                        <span class="text-xs px-2 py-1 rounded-full ${product.currentStock > product.minStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                            Stock: ${product.currentStock}
-                        </span>
+                        <span class="text-green-600 font-medium">${product.price.toFixed(2)}</span>
+                        <div class="text-right">
+                            <span class="text-xs px-2 py-1 rounded-full ${product.currentStock > product.minStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                Stock: ${product.currentStock}/${product.minStock}
+                            </span>
+                        </div>
                     </div>
                 `;
-                productCard.addEventListener('click', () => showProductDetail(product));
+                productCard.addEventListener('click', (e) => {
+                    // Only show detail if not clicking on edit button
+                    if (!e.target.closest('.edit-product-btn')) {
+                        showProductDetail(product);
+                    }
+                });
                 catalogList.appendChild(productCard);
             });
+        }
+
+        // Add product button event listener
+        document.getElementById('add-product-btn')?.addEventListener('click', () => {
+            showAddProductForm();
+        });
+
+        // Edit product button event delegation
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.edit-product-btn')) {
+                const productId = parseInt(e.target.closest('.edit-product-btn').getAttribute('data-id'));
+                showEditProductForm(productId);
+            }
+        });
+
+        function showAddProductForm() {
+            // In a real implementation, this would show a modal form to add new products
+            alert('Add new product form would appear here');
+            // The form would include fields for:
+            // - Product name
+            // - Description
+            // - Category
+            // - Price
+            // - Current stock
+            // - Minimum stock threshold
+            // - Specifications
+        }
+
+        function showEditProductForm(productId) {
+            // In a real implementation, this would show a modal form to edit product
+            const product = products.find(p => p.id === productId);
+            if (product) {
+                alert(`Edit form for ${product.name} would appear here`);
+                // The form would include fields to edit all product properties
+                // Including the ability to modify the minimum stock threshold
+            }
         }
 
         // Show product detail view
@@ -400,9 +477,17 @@
             
             detailContent.innerHTML = `
                 <div class="bg-white rounded-lg shadow p-4">
-                    <h3 class="text-xl font-bold text-blue-600">${product.name}</h3>
-                    <p class="text-sm text-gray-500 mt-1">${product.category}</p>
-                    <p class="mt-3 text-gray-700">${product.description}</p>
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-xl font-bold text-blue-600">${product.name}</h3>
+                            <p class="text-sm text-gray-500 mt-1">${product.category}</p>
+                            <p class="mt-3 text-gray-700">${product.description}</p>
+                        </div>
+                        <button class="edit-product-btn p-1 text-gray-400 hover:text-blue-500" 
+                                data-id="${product.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </div>
                     
                     <div class="mt-4">
                         <h4 class="font-semibold border-b pb-1">Specifications</h4>
@@ -427,7 +512,7 @@
                         </div>
                         <div class="bg-blue-50 p-3 rounded">
                             <p class="text-xs text-gray-500">Price</p>
-                            <p class="font-bold">$${product.price.toFixed(2)}</p>
+                            <p class="font-bold">${product.price.toFixed(2)}</p>
                         </div>
                         <div class="bg-blue-50 p-3 rounded">
                             <p class="text-xs text-gray-500">Status</p>
@@ -435,6 +520,13 @@
                                 ${product.currentStock > product.minStock ? 'In Stock' : 'Low Stock'}
                             </p>
                         </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded"
+                                onclick="alert('Order more of ${product.name} would be implemented here')">
+                            Order More
+                        </button>
                     </div>
                 </div>
             `;
@@ -487,7 +579,8 @@
                                        port.status === 'Faulty' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800';
                 
                 const portItem = document.createElement('div');
-                portItem.className = 'hub-item bg-white rounded-lg shadow p-3';
+                portItem.className = 'hub-item bg-white rounded-lg shadow p-3 cursor-pointer';
+                portItem.addEventListener('click', () => showPortDetail(port, 'control-hub'));
                 portItem.innerHTML = `
                     <div class="flex justify-between items-center">
                         <div class="flex items-center">
@@ -496,7 +589,7 @@
                             </div>
                             <div>
                                 <h3 class="font-medium">Port ${port.portNumber}</h3>
-                                <p class="text-xs text-gray-500">${port.device}</p>
+                                <p class="text-xs text-gray-500">${port.device} (${port.system})</p>
                             </div>
                         </div>
                         <span class="text-xs px-2 py-1 rounded-full ${portStatusClass}">${port.status}</span>
@@ -514,7 +607,8 @@
                                        port.status === 'Faulty' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800';
                 
                 const portItem = document.createElement('div');
-                portItem.className = 'hub-item bg-white rounded-lg shadow p-3';
+                portItem.className = 'hub-item bg-white rounded-lg shadow p-3 cursor-pointer';
+                portItem.addEventListener('click', () => showPortDetail(port, 'expansion-hub'));
                 portItem.innerHTML = `
                     <div class="flex justify-between items-center">
                         <div class="flex items-center">
@@ -699,15 +793,17 @@
         savePortBtn.addEventListener('click', () => {
             const portNumber = parseInt(document.getElementById('port-number').value);
             const device = document.getElementById('port-device').value.trim();
+            const system = document.getElementById('port-system').value.trim();
+            const portType = document.getElementById('port-type').value.trim();
             const status = document.getElementById('port-status').value;
             const hubType = savePortBtn.getAttribute('data-hub-type');
             
-            if (!portNumber || isNaN(portNumber) || !device) {
+            if (!portNumber || isNaN(portNumber) || !device || !system) {
                 alert('Please fill in all fields with valid values');
                 return;
             }
             
-            const newPort = { portNumber, device, status };
+            const newPort = { portNumber, device, system, portType, status };
             
             switch (hubType) {
                 case 'control-hub':
@@ -729,6 +825,138 @@
 
         cancelPortBtn.addEventListener('click', () => {
             portModal.classList.add('hidden');
+        });
+
+        // Show port detail view
+        let currentPort = null;
+        let currentPortHubType = '';
+        
+        function showPortDetail(port, hubType) {
+            currentPort = port;
+            currentPortHubType = hubType;
+            
+            document.querySelector('.tab-content.active').classList.remove('active');
+            productDetail.classList.add('hidden');
+            comparisonView.classList.add('hidden');
+            hubPortDetail.classList.remove('hidden');
+            
+            const portType = hubType === 'control-hub' ? 'Control Hub' : 
+                           hubType === 'expansion-hub' ? 'Expansion Hub' : 'Servo Hub';
+            
+            document.getElementById('port-detail-content').innerHTML = `
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <p class="text-sm text-gray-500">Port Number</p>
+                        <p class="font-medium">${port.portNumber}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Status</p>
+                        <p class="font-medium ${port.status === 'Active' ? 'text-green-600' : port.status === 'Faulty' ? 'text-red-600' : 'text-gray-600'}">
+                            ${port.status}
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Device Name</p>
+                        <p class="font-medium">${port.device}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">System</p>
+                        <p class="font-medium">${port.system}</p>
+                    </div>
+                </div>
+                
+                <div class="border-t pt-4">
+                    <h4 class="font-semibold mb-2">Servo Specifications</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-500">Type</p>
+                            <p class="font-medium">${port.type}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Weight</p>
+                            <p class="font-medium">${port.weight}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Min Angle</p>
+                            <p class="font-medium">${port.minAngle}°</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Max Angle</p>
+                            <p class="font-medium">${port.maxAngle}°</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <p class="text-sm text-gray-500">Hub Type</p>
+                    <p class="font-medium">${portType}</p>
+                </div>
+            `;
+        }
+
+        // Back from port detail
+        document.getElementById('back-from-hub-detail').addEventListener('click', () => {
+            hubPortDetail.classList.add('hidden');
+            document.querySelector('.tab-button.active').click();
+        });
+
+        // Delete port button
+        document.getElementById('delete-port-btn').addEventListener('click', () => {
+            if (confirm('Are you sure you want to delete this port?')) {
+                let portsArray;
+                
+                switch (currentPortHubType) {
+                    case 'control-hub':
+                        portsArray = currentControlHubPorts;
+                        break;
+                    case 'expansion-hub':
+                        portsArray = currentExpansionHubPorts;
+                        break;
+                    case 'servo-hub':
+                        portsArray = currentServoHubPorts;
+                        break;
+                }
+                
+                const index = portsArray.findIndex(p => p.portNumber === currentPort.portNumber);
+                if (index >= 0) {
+                    portsArray.splice(index, 1);
+                    
+                    // Re-render the appropriate hub
+                    switch (currentPortHubType) {
+                        case 'control-hub':
+                            renderControlHub();
+                            break;
+                        case 'expansion-hub':
+                            renderExpansionHub();
+                            break;
+                        case 'servo-hub':
+                            renderServoHub();
+                            break;
+                    }
+                }
+                
+                hubPortDetail.classList.add('hidden');
+                document.querySelector('.tab-button.active').click();
+            }
+        });
+
+        // Edit port button
+        document.getElementById('edit-port-btn').addEventListener('click', () => {
+            const hubType = currentPortHubType;
+            savePortBtn.setAttribute('data-hub-type', hubType);
+            document.getElementById('modal-title').textContent = `Edit ${hubType.replace('-', ' ')} Port`;
+            
+            // Fill form with current values
+            document.getElementById('port-number').value = currentPort.portNumber;
+            document.getElementById('port-device').value = currentPort.device;
+            document.getElementById('port-system').value = currentPort.system || '';
+            document.getElementById('port-type').value = currentPort.portType || '';
+            document.getElementById('port-status').value = currentPort.status;
+            
+            portModal.classList.remove('hidden');
+            
+            // Hide port detail view
+            hubPortDetail.classList.add('hidden');
         });
 
         // Initialize the app when the DOM is loaded
