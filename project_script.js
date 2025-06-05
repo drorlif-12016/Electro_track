@@ -1,4 +1,3 @@
-
 // ---------------------- Project JavaScript ----------------------
 
 /** Product Data **/
@@ -76,69 +75,105 @@ tabButtons.forEach(button => {
 
 /** Save/Load Port Data **/
 function savePortData() {
-    const portData = { controlHub: currentControlHubPorts, expansionHub: currentExpansionHubPorts, servoHub: currentServoHubPorts };
-    localStorage.setItem('hubPorts', JSON.stringify(portData));
-    console.log('Port data saved!');
+    try {
+        const portData = { 
+            controlHub: currentControlHubPorts, 
+            expansionHub: currentExpansionHubPorts, 
+            servoHub: currentServoHubPorts 
+        };
+        localStorage.setItem('hubPorts', JSON.stringify(portData));
+        console.log('Port data saved!');
+    } catch (error) {
+        console.error('Error saving port data:', error);
+    }
 }
 
 function loadPortData() {
-    const savedData = JSON.parse(localStorage.getItem('hubPorts'));
-    if (savedData) {
-        currentControlHubPorts = savedData.controlHub || [];
-        currentExpansionHubPorts = savedData.expansionHub || [];
-        currentServoHubPorts = savedData.servoHub || [];
+    try {
+        const savedData = localStorage.getItem('hubPorts');
+        if (savedData) {
+            const parsedData = JSON.parse(savedData);
+            currentControlHubPorts = parsedData.controlHub || [];
+            currentExpansionHubPorts = parsedData.expansionHub || [];
+            currentServoHubPorts = parsedData.servoHub || [];
+        }
+    } catch (error) {
+        console.error('Error loading port data:', error);
+        // Reset to empty arrays if data is corrupted
+        currentControlHubPorts = [];
+        currentExpansionHubPorts = [];
+        currentServoHubPorts = [];
     }
 }
 
 /** Initialize App **/
 function initApp() {
-    renderProductCatalog();
-    renderStockList();
-    renderControlHub();
-    renderExpansionHub();
-    renderServoHub();
+    try {
+        renderProductCatalog();
+        renderStockList();
+        renderControlHub();
+        renderExpansionHub();
+        renderServoHub();
+    } catch (error) {
+        console.error('Error initializing app:', error);
+    }
 }
 
 /** Product Catalog **/
 function renderProductCatalog() {
-    catalogList.innerHTML = '';
-    products.forEach(product => {
-        const productCard = document.createElement('div');
-        productCard.className = 'product-card bg-white rounded-lg shadow p-4 cursor-pointer';
-        productCard.innerHTML = \`
-            <div class="flex justify-between items-start">
-                <div>
-                    <h3 class="font-semibold text-blue-600">\${product.name}</h3>
-                    <p class="text-sm text-gray-600 mt-1">\${product.category}</p>
-                    <p class="text-sm mt-2 line-clamp-2">\${product.description}</p>
+    try {
+        if (!catalogList) {
+            console.error('Catalog list element not found');
+            return;
+        }
+        
+        catalogList.innerHTML = '';
+        products.forEach(product => {
+            const productCard = document.createElement('div');
+            productCard.className = 'product-card bg-white rounded-lg shadow p-4 cursor-pointer';
+            productCard.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="font-semibold text-blue-600">${product.name}</h3>
+                        <p class="text-sm text-gray-600 mt-1">${product.category}</p>
+                        <p class="text-sm mt-2 line-clamp-2">${product.description}</p>
+                    </div>
+                    <button class="edit-product-btn p-1 text-gray-400 hover:text-blue-500" data-id="${product.id}">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
                 </div>
-                <button class="edit-product-btn p-1 text-gray-400 hover:text-blue-500" data-id="\${product.id}">
-                    <i class="fas fa-ellipsis-v"></i>
-                </button>
-            </div>
-            <div class="flex justify-between items-center mt-3">
-                <span class="text-green-600 font-medium">\${product.price.toFixed(2)}</span>
-                <div class="text-right">
-                    <span class="text-xs px-2 py-1 rounded-full \${product.currentStock > product.minStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                        Stock: \${product.currentStock}/\${product.minStock}
-                    </span>
+                <div class="flex justify-between items-center mt-3">
+                    <span class="text-green-600 font-medium">$${product.price.toFixed(2)}</span>
+                    <div class="text-right">
+                        <span class="text-xs px-2 py-1 rounded-full ${product.currentStock > product.minStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                            Stock: ${product.currentStock}/${product.minStock}
+                        </span>
+                    </div>
                 </div>
-            </div>
-        \`;
-        productCard.addEventListener('click', (e) => {
-            if (!e.target.closest('.edit-product-btn')) {
-                showProductDetail(product);
-            }
+            `;
+            productCard.addEventListener('click', (e) => {
+                if (!e.target.closest('.edit-product-btn')) {
+                    showProductDetail(product);
+                }
+            });
+            catalogList.appendChild(productCard);
         });
-        catalogList.appendChild(productCard);
-    });
+    } catch (error) {
+        console.error('Error rendering product catalog:', error);
+    }
 }
 
 /** Render Stock List and Hub Ports (omitted for brevity, similar logic to above) **/
 
 /** Save ports after adding/editing/deleting **/
-savePortBtn.addEventListener('click', () => setTimeout(savePortData, 100));
-document.getElementById('delete-port-btn').addEventListener('click', () => setTimeout(savePortData, 100));
+if (savePortBtn) {
+    savePortBtn.addEventListener('click', () => setTimeout(savePortData, 100));
+}
+
+const deletePortBtn = document.getElementById('delete-port-btn');
+if (deletePortBtn) {
+    deletePortBtn.addEventListener('click', () => setTimeout(savePortData, 100));
+}
 
 /** Initial Load **/
 document.addEventListener('DOMContentLoaded', () => {
