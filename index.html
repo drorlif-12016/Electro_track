@@ -4,7 +4,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Electronics Stock Tracker</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com">
+/**
+ * Save all hub port data to localStorage
+ */
+function savePortData() {
+    const portData = {
+        controlHub: currentControlHubPorts,
+        expansionHub: currentExpansionHubPorts,
+        servoHub: currentServoHubPorts
+    };
+    localStorage.setItem('hubPorts', JSON.stringify(portData));
+}
+
+/**
+ * Load port data from localStorage, if exists
+ */
+function loadPortData() {
+    const savedData = JSON.parse(localStorage.getItem('hubPorts'));
+    if (savedData) {
+        currentControlHubPorts = savedData.controlHub || [];
+        currentExpansionHubPorts = savedData.expansionHub || [];
+        currentServoHubPorts = savedData.servoHub || [];
+    }
+}
+
+// Call this before rendering (in initApp)
+document.addEventListener('DOMContentLoaded', () => {
+    loadPortData();
+    initApp();
+});
+
+/**
+ * Enhance the save/edit/delete events to include saving to localStorage
+ */
+const originalSavePort = savePortBtn.onclick;
+savePortBtn.addEventListener('click', () => {
+    setTimeout(savePortData, 100);
+});
+
+// Also save on delete
+document.getElementById('delete-port-btn').addEventListener('click', () => {
+    setTimeout(savePortData, 100);
+});
+
+</script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* Custom styles for transitions and animations */
@@ -34,6 +78,8 @@
             to { transform: translateY(0); opacity: 1; }
         }
     </style>
+</head>
+<body
 </head>
 <body class="bg-gray-100 font-sans">
     <div class="max-w-md mx-auto bg-white min-h-screen flex flex-col">
@@ -316,10 +362,7 @@
             }
         ];
 
-        let currentControlHubPorts = [
-   
-        ];
-
+        let currentControlHubPorts = [];
         let currentExpansionHubPorts = [
     
         ];
@@ -961,6 +1004,51 @@
 
         // Initialize the app when the DOM is loaded
         document.addEventListener('DOMContentLoaded', initApp);
-    </script>
+    
+</script>
+</body>
+</html>
+<script>
+/**
+ * Save all hub port data to localStorage
+ */
+function savePortData() {
+    const portData = {
+        controlHub: currentControlHubPorts,
+        expansionHub: currentExpansionHubPorts,
+        servoHub: currentServoHubPorts
+    };
+    localStorage.setItem('hubPorts', JSON.stringify(portData));
+    console.log('Port data saved!');
+}
+
+/**
+ * Load port data from localStorage, if exists
+ */
+function loadPortData() {
+    const savedData = JSON.parse(localStorage.getItem('hubPorts'));
+    if (savedData) {
+        currentControlHubPorts = savedData.controlHub || [];
+        currentExpansionHubPorts = savedData.expansionHub || [];
+        currentServoHubPorts = savedData.servoHub || [];
+    }
+}
+
+// Call this before rendering (in initApp)
+document.addEventListener('DOMContentLoaded', () => {
+    loadPortData();
+    initApp();
+});
+
+// Enhance the save/edit/delete events to include saving to localStorage
+savePortBtn.addEventListener('click', () => {
+    setTimeout(savePortData, 100);
+});
+
+document.getElementById('delete-port-btn').addEventListener('click', () => {
+    setTimeout(savePortData, 100);
+});
+</script>
+
 </body>
 </html>
