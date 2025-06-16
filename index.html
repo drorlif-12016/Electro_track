@@ -908,27 +908,10 @@ document.getElementById('delete-port-btn').addEventListener('click', () => {
                     </div>
                 </div>
                 
-                <div class="border-t pt-4">
-                    <h4 class="font-semibold mb-2">Servo Specifications</h4>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
                             <p class="text-sm text-gray-500">Type</p>
                             <p class="font-medium">${port.type}</p>
                         </div>
                         <div>
-                            <p class="text-sm text-gray-500">Weight</p>
-                            <p class="font-medium">${port.weight}</p>
-                        </div>
-                        <div>
-                            <p class="text-sm text-gray-500">Min Angle</p>
-                            <p class="font-medium">${port.minAngle}°</p>
-                        </div>
-                        <div>
-                            <p class="text-sm text-gray-500">Max Angle</p>
-                            <p class="font-medium">${port.maxAngle}°</p>
-                        </div>
-                    </div>
-                </div>
                 
                 <div class="mt-4">
                     <p class="text-sm text-gray-500">Hub Type</p>
@@ -996,10 +979,10 @@ document.getElementById('delete-port-btn').addEventListener('click', () => {
             document.getElementById('port-type').value = currentPort.portType || '';
             document.getElementById('port-status').value = currentPort.status;
             
-            portModal.classList.remove('hidden');
+            portModal.classList.remove('show');
             
             // Hide port detail view
-            hubPortDetail.classList.add('hidden');
+            hubPortDetail.classList.add('show');
         });
 
         // Initialize the app when the DOM is loaded

@@ -167,7 +167,13 @@ function renderProductCatalog() {
 
 /** Save ports after adding/editing/deleting **/
 if (savePortBtn) {
-    savePortBtn.addEventListener('click', () => setTimeout(savePortData, 100));
+    const newPort = {
+        portNumber,
+        device,
+        system,
+        portType,
+        type
+    };
 }
 
 const deletePortBtn = document.getElementById('delete-port-btn');
