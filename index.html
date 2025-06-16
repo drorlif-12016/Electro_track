@@ -590,7 +590,7 @@ document.getElementById('delete-port-btn').addEventListener('click', () => {
             products.forEach(product => {
                 const stockLevel = (product.currentStock / product.minStock) * 100;
                 const progressColor = stockLevel > 100 ? 'bg-green-500' : 
-                                     stockLevel > 50 ? 'bg-yellow-500' : 'bg-red-500';
+                stockLevel > 50 ? 'bg-yellow-500' : 'bg-red-500';
                 
                 const stockItem = document.createElement('div');
                 stockItem.className = 'stock-item bg-white rounded-lg shadow p-3';
@@ -619,7 +619,7 @@ document.getElementById('delete-port-btn').addEventListener('click', () => {
             controlHubList.innerHTML = '';
             currentControlHubPorts.forEach(port => {
                 const portStatusClass = port.status === 'Active' ? 'bg-green-100 text-green-800' : 
-                                       port.status === 'Faulty' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800';
+ port.status === 'Faulty' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800';
                 
                 const portItem = document.createElement('div');
                 portItem.className = 'hub-item bg-white rounded-lg shadow p-3 cursor-pointer';
@@ -647,7 +647,7 @@ document.getElementById('delete-port-btn').addEventListener('click', () => {
             expansionHubList.innerHTML = '';
             currentExpansionHubPorts.forEach(port => {
                 const portStatusClass = port.status === 'Active' ? 'bg-green-100 text-green-800' : 
-                                       port.status === 'Faulty' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800';
+                port.status === 'Faulty' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800';
                 
                 const portItem = document.createElement('div');
                 portItem.className = 'hub-item bg-white rounded-lg shadow p-3 cursor-pointer';
@@ -675,7 +675,7 @@ document.getElementById('delete-port-btn').addEventListener('click', () => {
             servoHubList.innerHTML = '';
             currentServoHubPorts.forEach(port => {
                 const portStatusClass = port.status === 'Active' ? 'bg-green-100 text-green-800' : 
-                                       port.status === 'Faulty' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800';
+                port.status === 'Faulty' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800';
                 
                 const portItem = document.createElement('div');
                 portItem.className = 'hub-item bg-white rounded-lg shadow p-3';
@@ -884,7 +884,7 @@ document.getElementById('delete-port-btn').addEventListener('click', () => {
             hubPortDetail.classList.remove('hidden');
             
             const portType = hubType === 'control-hub' ? 'Control Hub' : 
-                           hubType === 'expansion-hub' ? 'Expansion Hub' : 'Servo Hub';
+            hubType === 'expansion-hub' ? 'Expansion Hub' : 'Servo Hub';
             
             document.getElementById('port-detail-content').innerHTML = `
                 <div class="grid grid-cols-2 gap-4 mb-4">
